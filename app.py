@@ -2,7 +2,7 @@ from animeflv import AnimeFLV
 import streamlit as st 
 
 # Configuración de la página
-st.set_page_config(page_title='APP Anime', page_icon=':sushi:', layout='centered')
+st.set_page_config(page_title='BV Anime', page_icon=':sushi:', layout='centered')
 
 # Aplicar estilos CSS para centrar y asegurar que el iframe mantenga el tamaño
 st.markdown(
@@ -26,7 +26,7 @@ st.markdown(
 
 # Mostrar banner
 st.image('assets/IMG/banner-img.png')
-st.title('APP Anime')
+st.title('BV Anime')
 
 # Instanciar la clase AnimeFLV
 animeFlv = AnimeFLV()
@@ -157,3 +157,6 @@ else:
                                 st.write(f'Link seleccionado: {linkSeleccionado}')
                 else:
                     st.write('No se encontraron animes')
+
+
+#CODE BY: Diego Bravo // Eghost1
