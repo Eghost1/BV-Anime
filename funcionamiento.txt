@@ -1,0 +1,5 @@
+1. el usuario buscara a traves del buscador el anime que desea ver (utilizar un text imput st.text_imput)
+2. a traves de lo que ingrese el usuario se realizara la busqueda en la API
+3. se mostraran todos los resultados posibles a la busqueda del usuario
+4. el usuario selecciona el anime en espeficico que quiere ver y luego se despliega las opciones del capitulo a ver
+5. una vez seleccionado el capitulo el usuario seleccionara el servidor para ver el capitulo (utilizar st.video para mostrar el stream del video)

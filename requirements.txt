@@ -1,0 +1,8 @@
+#librerias para la API de AnimeFLV
+animeflv
+cloudscraper
+lxml
+beautifulsoup4
+
+#librerias
+streamlit
