@@ -1,8 +1,9 @@
 from animeflv import AnimeFLV
 import streamlit as st 
+import json
 
 # Configuración de la página
-st.set_page_config(page_title='BV Anime', page_icon=':sushi:', layout='centered')
+st.set_page_config(page_title='APP Anime', page_icon=':sushi:', layout='centered')
 
 # Aplicar estilos CSS para centrar y asegurar que el iframe mantenga el tamaño
 st.markdown(
@@ -26,137 +27,102 @@ st.markdown(
 
 # Mostrar banner
 st.image('assets/IMG/banner-img.png')
-st.title('BV Anime')
+st.title('APP Anime')
 
-# Instanciar la clase AnimeFLV
-animeFlv = AnimeFLV()
+animeFlv= AnimeFLV()
 
-# Inicializar el estado de la sesión si no existe
-if 'animeInfo' not in st.session_state:
-    st.session_state.animeInfo = None
-if 'selectedAnime' not in st.session_state:
-    st.session_state.selectedAnime = None
-if 'selectedEpisodio' not in st.session_state:
-    st.session_state.selectedEpisodio = None
-if 'selectedServidor' not in st.session_state:
-    st.session_state.selectedServidor = None
 
-# Función para reiniciar la búsqueda
-def reset_search():
-    st.session_state.animeResult = None
-    st.session_state.animeInfo = None
-    st.session_state.selectedAnime = None
-    st.session_state.selectedEpisodio = None
-    st.session_state.selectedServidor = None
+# Cargar desde archivo si existe
+try:
+    with open('anime_titulos.json', 'r') as f:
+        titulos = json.load(f)
+except FileNotFoundError:
+    titulos = []
 
-# Botón para reiniciar la búsqueda
-if st.button('Reiniciar Búsqueda'):
-    reset_search()
+# Lógica para agregar nuevos títulos si el archivo está vacío
+if not titulos:
+    for i in range(1, 250):
+        anime_list = animeFlv.list(page=i)
+        #print(anime_list)
+        titulos.extend(anime.title for anime in anime_list)
+        print(titulos)
+        print("\n")
 
-# Input para buscar un anime
-anime = st.text_input('Buscador de anime', value=st.session_state.selectedAnime or '')
+    # Guardar los nuevos títulos en un archivo
+    with open('anime_titulos.json', 'w') as f:
+        json.dump(titulos, f)
 
-# Si ya se ha buscado un anime anteriormente y el texto de búsqueda es el mismo, usa los datos almacenados
-if st.session_state.animeInfo and anime == st.session_state.selectedAnime:
-    animeInfo = st.session_state.animeInfo
-    
-    # Mostrar selección de episodios
-    idEpisodios = [episode.id for episode in animeInfo.episodes]
-    seleccionEpisodio = st.selectbox('Selecciona el episodio que quieres ver', idEpisodios, index=idEpisodios.index(st.session_state.selectedEpisodio) if st.session_state.selectedEpisodio in idEpisodios else 0)
-    
-    # Mostrar la selección de servidores
-    if seleccionEpisodio:
-        idAnime = animeInfo.id
-        links = animeFlv.get_video_servers(idAnime, seleccionEpisodio)
-        
-        # Mostrar los links obtenidos para ver cómo está estructurado el objeto
-        #st.write("Links:", links)  # Para depuración
-        
-        # Asumimos que `links` es una lista de listas
-        if isinstance(links, list) and len(links) > 0 and isinstance(links[0], list):
-            links = links[0]  # Accedemos a la primera lista dentro de `links`
-        
-        # Extraer la información de los servidores correctamente
-        serverTitle = [link['server'] for link in links]
-        serverUrl = [link['code'] for link in links]
-        
-        seleccionServidor = st.selectbox('Selecciona el servidor que quieres ver', serverTitle, index=serverTitle.index(st.session_state.selectedServidor) if st.session_state.selectedServidor in serverTitle else 0)
-    
-        if seleccionServidor:
-            linkSeleccionado = [link['code'] for link in links if link['server'] == seleccionServidor][0]
-            st.write(f'Link seleccionado: {linkSeleccionado}')
-            
-            # Incluir el iframe dentro de un div con clase centrada
-            st.markdown(
-                f"""
-                <div class="center-iframe">
-                    <iframe src="{linkSeleccionado}" frameborder="0" allowfullscreen></iframe>
-                </div>
-                """, 
-                unsafe_allow_html=True
-            )
-else:
-    if anime:
-        with st.spinner('Buscando anime...'):
-            with AnimeFLV() as af:
-                # Realizar la búsqueda del anime ingresado
-                animeResult = af.search(anime)
-                
-                # Iterar sobre los resultados y extraer los títulos
-                if animeResult:
-                    animeTitulos = [resultado.title for resultado in animeResult]
-                    seleccionAnime = st.selectbox('Selecciona el Anime que quieres ver', animeTitulos, index=animeTitulos.index(st.session_state.selectedAnime) if st.session_state.selectedAnime in animeTitulos else 0)
-                    
-                    if seleccionAnime:
-                        # Obtener el índice del anime seleccionado
-                        index = animeTitulos.index(seleccionAnime)
-                        # Obtener la información detallada del anime seleccionado
-                        animeInfo = af.get_anime_info(animeResult[index].id)
+
+
+# Input para buscar un anime sin un primer elemento
+anime = st.selectbox('Buscador de anime', ['Selecciona un anime'] + titulos)
+
+
+
+with st.spinner('Buscando anime...'):
+    if anime != 'Selecciona un anime':  # Verificar que se ha seleccionado un anime válido
+        try:
+            # Realizar la búsqueda del anime ingresado
+            animeResult = animeFlv.search(anime)
+            print(f"anime buscado = {anime}")
+            print(f"animeResult: {animeResult}")
+            print("\n")
+
+            if not animeResult:
+                st.write('No se encontraron resultados para la búsqueda.')
+            else:
+                # Verificar que animeResult[0] tiene un título
+                if animeResult[0] and animeResult[0].title:  
+                    # Obtener el índice del anime seleccionado
+                    index = titulos.index(animeResult[0].title)
+                    animeInfo = animeFlv.get_anime_info(animeResult[0].id)
+                    print(f"animeInfo: {animeInfo}") 
+                    print("\n")
+
+                    # Verificar que animeInfo tiene episodios
+                    if animeInfo.episodes:
                         animeInfo.episodes.reverse()
                         
-                        # Almacenar la información del anime en el estado de la sesión
-                        st.session_state.animeInfo = animeInfo
-                        st.session_state.selectedAnime = seleccionAnime
-                        
-                        # Mostrar los capítulos disponibles 
+                        # Mostrar los capítulos disponibles
                         idEpisodios = [episode.id for episode in animeInfo.episodes]
-                        seleccionEpisodio = st.selectbox('Selecciona el episodio que quieres ver', idEpisodios, index=idEpisodios.index(st.session_state.selectedEpisodio) if st.session_state.selectedEpisodio in idEpisodios else 0)
-                        
+                        seleccionEpisodio = st.selectbox('Selecciona el episodio que quieres ver', idEpisodios)
+
                         # Mostrar la selección de servidores
                         if seleccionEpisodio:
                             idAnime = animeInfo.id
-                            links = af.get_video_servers(idAnime, seleccionEpisodio)
-                            
-                            # Mostrar los links obtenidos para ver cómo está estructurado el objeto
-                            #st.write("Links:", links)  # Para depuración
-                            
-                            # Asumimos que `links` es una lista de listas
+                            links = animeFlv.get_video_servers(idAnime, seleccionEpisodio)
+
+                            # Validar que 'links' es una lista con al menos un elemento
                             if isinstance(links, list) and len(links) > 0 and isinstance(links[0], list):
-                                links = links[0]  # Accedemos a la primera lista dentro de `links`
-                            
-                            # Extraer la información de los servidores correctamente
-                            serverTitle = [link['server'] for link in links]
-                            serverUrl = [link['code'] for link in links]
-                            
-                            seleccionServidor = st.selectbox('Selecciona el servidor que quieres ver', serverTitle, index=serverTitle.index(st.session_state.selectedServidor) if st.session_state.selectedServidor in serverTitle else 0)
-                        
-                            if seleccionServidor:
-                                linkSeleccionado = [link['code'] for link in links if link['server'] == seleccionServidor][0]
+                                links = links[0]  # Accedemos a la primera lista dentro de links
                                 
-                                
-                                # Incluir el iframe dentro de un div con clase centrada
-                                st.markdown(
-                                    f"""
-                                    <div class="center-iframe">
-                                        <iframe src="{linkSeleccionado}" frameborder="0" allowfullscreen></iframe>
-                                    </div>
-                                    """, 
-                                    unsafe_allow_html=True
-                                )
-                                
-                                st.write(f'Link seleccionado: {linkSeleccionado}')
+                                # Extraer la información de los servidores correctamente
+                                serverTitle = [link['server'] for link in links]
+                                seleccionServidor = st.selectbox('Selecciona el servidor que quieres ver', serverTitle)
+
+                                if seleccionServidor:
+                                    # Obtener el link seleccionado
+                                    linkSeleccionado = [link['code'] for link in links if link['server'] == seleccionServidor][0]
+                                    
+                                    # Incluir el iframe dentro de un div con clase centrada
+                                    st.markdown(
+                                        f"""
+                                        <div class="center-iframe">
+                                            <iframe src="{linkSeleccionado}" frameborder="0" allowfullscreen></iframe>
+                                        </div>
+                                        """, 
+                                        unsafe_allow_html=True
+                                    )
+                                    
+                                    st.write(f'Link seleccionado: {linkSeleccionado}')
+                            else:
+                                st.write('No se encontraron servidores o el formato de datos es incorrecto.')
+                    else:
+                        st.write('No hay episodios disponibles para este anime.')
                 else:
-                    st.write('No se encontraron animes')
+                    st.write('No se encontró un título válido para el anime.')
 
-
-#CODE BY: Diego Bravo // Eghost1
+        except Exception as e:
+            st.error(f"Ocurrió un error al buscar el anime: {e}")
+    else:
+        st.write('Selecciona un anime para comenzar.')
