@@ -15,7 +15,7 @@
 ## 🚀 ¿Cómo empezar?
 
 1. **Visita la aplicación:**
-   Accede a BVAnime en https://animebv.streamlit.app/
+   Accede a BVAnime
 
 2. **Explora el catálogo:**
    Navega por los diferentes géneros y descubre nuevas series que te encantarán.
