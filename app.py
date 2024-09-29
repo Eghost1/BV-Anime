@@ -1,9 +1,12 @@
 from animeflv import AnimeFLV
 import streamlit as st 
 import json
+from PIL import Image
+
+logo= Image.open("assets/IMG/Logo BVAnime.jpeg"
 
 # Configuración de la página
-st.set_page_config(page_title='APP Anime', page_icon=':sushi:', layout='centered')
+st.set_page_config(page_title='APP Anime', page_icon='logo', layout='centered')
 
 # Aplicar estilos CSS para centrar y asegurar que el iframe mantenga el tamaño
 st.markdown(
