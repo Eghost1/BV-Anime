@@ -3,10 +3,12 @@ import streamlit as st
 import json
 from PIL import Image
 
-logo= Image.open("assets/IMG/Logo BVAnime.jpeg"
+
+logo= "/home/diego/Imágenes/Logo BVAnime.jpeg"
+
 
 # Configuración de la página
-st.set_page_config(page_title='APP Anime', page_icon='logo', layout='centered')
+st.set_page_config(page_title='BV-Anime', page_icon=logo, layout='centered')
 
 # Aplicar estilos CSS para centrar y asegurar que el iframe mantenga el tamaño
 st.markdown(
@@ -30,7 +32,8 @@ st.markdown(
 
 # Mostrar banner
 st.image('assets/IMG/banner-img.png')
-st.title('APP Anime')
+st.title('BVAnime')
+st.write('Bienvenido a BVAnime, la plataforma para ver anime en línea de forma gratuita. Selecciona un anime y un episodio para comenzar a verlo.')
 
 animeFlv= AnimeFLV()
 
